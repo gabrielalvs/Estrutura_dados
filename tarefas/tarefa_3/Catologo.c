@@ -4,70 +4,104 @@
 #include "Catologo.h"
 #include "Jogo.h"
 
-struct catologo_st
+struct catalogo_st
 {   
     int n_elements;
     int n_jogos;
     JOGO **jogos;
 };
 
-CATALOGO *catologo_new ()
+CATALOGO *catalogo_new ()
 {
-    CATALOGO *catologo;
+    CATALOGO *catalogo;
 
-    catologo = (CATALOGO *) malloc(sizeof(CATALOGO));
+    catalogo = (CATALOGO *) malloc(sizeof(CATALOGO));
 
-    if (catologo != NULL)
+    if (catalogo != NULL)
     {
-        catologo->n_elements = 10;
-        catologo->n_jogos = 0;
-        catologo->jogos = (JOGO **) malloc(catologo->n_elements * sizeof(JOGO*));
-        return catologo;
+        catalogo->n_elements = 10;
+        catalogo->n_jogos = 0;
+        catalogo->jogos = (JOGO **) malloc(catalogo->n_elements * sizeof(JOGO*));
+        return catalogo;
     }
     return NULL;
 }
 
-boolean catologo_delete(CATALOGO **catologo)
+boolean catalogo_delete(CATALOGO **catalogo)
 {
-    if (*catologo != NULL)
+    if (*catalogo != NULL)
     {
-        for(int i = 0; i < (*catologo)->n_jogos; i++){
-            if((*catologo)->jogos[i] != NULL){
-                free((*catologo)->jogos[i]);
+        for(int i = 0; i < (*catalogo)->n_jogos; i++){
+            if((*catalogo)->jogos[i] != NULL){
+                free((*catalogo)->jogos[i]);
             }
         }
-        free((*catologo)->jogos);
-        free(*catologo);
-        *catologo = NULL;
+        free((*catalogo)->jogos);
+        free(*catalogo);
+        *catalogo = NULL;
         return TRUE;
     }
     return FALSE;
 }
 
-void catologo_print(const CATALOGO *catologo)
+void catalogo_print(const CATALOGO *catalogo)
 {
-    if (catologo != NULL)
+    if (catalogo != NULL)
     {
-        for(int i = 0; i < catologo->n_jogos; i++){
-            if(catologo->jogos[i] != NULL){
-               jogo_print(catologo->jogos[i]);
+        for(int i = 0; i < catalogo->n_jogos; i++){
+            if(catalogo->jogos[i] != NULL){
+               jogo_print(catalogo->jogos[i]);
             }
         }
     }
 }
 
 
-boolean catologo_add(CATALOGO *catologo, JOGO *jogo)
+boolean catalogo_add(CATALOGO *catalogo, JOGO *jogo)
 {
-    if(catologo!=NULL && jogo != NULL){
-        if(catologo->n_jogos==catologo->n_elements){
-            catologo->n_elements *= 2;
-            catologo->jogos = (JOGO **) realloc(catologo->jogos, sizeof(JOGO*) * catologo->n_elements);
+    if(catalogo!=NULL && jogo != NULL){
+        if(catalogo->n_jogos==catalogo->n_elements){
+            catalogo->n_elements *= 2;
+            catalogo->jogos = (JOGO **) realloc(catalogo->jogos, sizeof(JOGO*) * catalogo->n_elements);
 
         }
-        catologo->jogos[catologo->n_jogos] = jogo;
-        catologo->n_jogos++;
+        catalogo->jogos[catalogo->n_jogos] = jogo;
+        catalogo->n_jogos++;
         return TRUE;
     }
     return FALSE;
 }
+
+void catalogo_search_ano(const CATALOGO *catalogo, int ano)
+{
+    int aux = 0;
+    for (int i = 0; i < catalogo->n_jogos; i++)
+    {
+        int aux_ano = jogo_get_ano(catalogo->jogos[i]);
+
+        if(aux_ano == ano)
+        {
+            printf("%s\n", jogo_get_nome_jogo(catalogo->jogos[i]));
+            aux++;
+        }
+    }
+
+    if(aux==0) printf("Nada encontrado\n");
+}
+
+void catalogo_search_nome_empresa(const CATALOGO *catalogo, char *nome_empresa)
+{
+    int aux = 0;
+    for (int i = 0; i < catalogo->n_jogos; i++)
+    {   
+        char *aux_nome_empresa = jogo_get_nome_empresa(catalogo->jogos[i]);
+        if(strcmp(aux_nome_empresa, nome_empresa)==0)
+        {       
+            printf("%s\n", jogo_get_nome_jogo(catalogo->jogos[i]));
+            aux++;
+        }
+    }
+
+    if(aux==0) printf("Nada encontrado\n");
+}
+

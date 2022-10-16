@@ -4,8 +4,8 @@
 #include "Jogo.h"
 
 struct jogo_st
-{   char nome_jogo[20];
-    char nome_empresa[20];
+{   char nome_jogo[100];
+    char nome_empresa[100];
     int ano;
 };
 
@@ -40,8 +40,38 @@ void jogo_print(const JOGO *jogo)
 {
     if (jogo != NULL)
     {
-        printf("\n-->Nome do jogo: %s\n", jogo->nome_jogo);
-        printf("\n-->Nome da empresa : %s\n", jogo->nome_empresa);
-        printf("\n-->Ano de lançamento: %d\n", jogo->ano);
+        printf("%s\n", jogo->nome_jogo);
+        printf("%s\n", jogo->nome_empresa);
+        printf("%d\n", jogo->ano);
     }
+}
+
+int jogo_get_ano(JOGO *jogo)
+{
+    if (jogo != NULL)
+    {
+       return jogo->ano;
+    }
+
+    return -1;
+}
+
+char *jogo_get_nome_empresa(JOGO *jogo)
+{
+    if (jogo != NULL)
+    {
+       return jogo->nome_empresa;
+    }
+
+    return NULL;
+}
+
+char *jogo_get_nome_jogo(JOGO *jogo)
+{
+    if (jogo != NULL)
+    {
+       return jogo->nome_jogo;
+    }
+
+    return NULL;
 }
