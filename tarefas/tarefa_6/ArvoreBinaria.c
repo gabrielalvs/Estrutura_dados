@@ -25,8 +25,8 @@ static void em_ordem_recursao(NODE *raiz);
 static void pos_ordem_recursao(NODE *raiz);
 static NODE* cria_no(JOGO* jogo);
 static void troca_max_esq(NODE *troca, NODE *raiz, NODE *ant);
-//static boolean ehMaior(NODE *raiz, JOGO *jogo);
-//static boolean ehMenor(NODE *raiz, JOGO *jogo);
+static boolean ehMaior(NODE *raiz, JOGO *jogo);
+static boolean ehMenor(NODE *raiz, JOGO *jogo);
 static boolean abb_remover_aux (NODE **raiz, int chave);
 static int altura(NODE *raiz);
 static int max(int a, int b); 
@@ -34,8 +34,6 @@ static int getBalance(NODE *no);
 //static int profundidade(NODE *no);
 static NODE *rightRotate(NODE *y);
 static NODE *leftRotate(NODE *x);
-static void print2DUtil(NODE *root, int space);
-boolean comparar_maior(JOGO *jogo1, JOGO *jogo2);
 
 ARVORE_BINARIA *arvore_binaria_criar()
 {
@@ -120,37 +118,29 @@ NODE *insertNode(NODE *raiz, JOGO *jogo)
 
     if (raiz == NULL)
         return cria_no(jogo);
-    //else if(ehMaior(raiz, jogo))
-    else if(comparar_maior(jogo, raiz->jogo))
+    else if(ehMaior(raiz, jogo))
         raiz->direita = insertNode(raiz->direita,jogo);
-    //else if(ehMenor(raiz, jogo))
-    else if(comparar_maior(raiz->jogo, jogo))
+    else if(ehMenor(raiz, jogo))
         raiz->esquerda = insertNode(raiz->esquerda,jogo);
     else
-        return raiz;   
+        return raiz;
 
     raiz->altura = 1 + max(altura(raiz->esquerda),altura(raiz->direita));
 
     int balance = getBalance(raiz);
 
-    //if (balance > 1 && ehMenor(raiz->esquerda, jogo)){//key < node->left->key
-    if (balance > 1 && comparar_maior(raiz->esquerda->jogo, jogo)){
+    if (balance > 1 && ehMenor(raiz->esquerda, jogo)) //key < node->left->key
         return rightRotate(raiz);
-    } 
 
-    //if (balance < -1 && ehMaior(raiz->direita, jogo)){//key > node->right->key
-    if (balance < -1 && comparar_maior(jogo, raiz->direita->jogo)){
+    if (balance < -1 && ehMaior(raiz->direita, jogo)) //key > node->right->key
         return leftRotate(raiz);
-    } 
-        
-    //if (balance > 1 && ehMaior(raiz->esquerda, jogo)) { //key > node->left->key
-    if (balance > 1 && comparar_maior(jogo, raiz->esquerda->jogo)) {
+ 
+    if (balance > 1 && ehMaior(raiz->esquerda, jogo)) { // key > node->left->key
         raiz->esquerda = leftRotate(raiz->esquerda);
         return rightRotate(raiz);
     }
 
-    //if (balance < -1 && ehMenor(raiz->direita, jogo)) { //key < node->right->key
-    if (balance < -1 && comparar_maior(raiz->direita->jogo, jogo)) {
+    if (balance < -1 && ehMenor(raiz->direita, jogo)) { //key < node->right->key
         raiz->direita = rightRotate(raiz->direita);
         return leftRotate(raiz);
     }
@@ -158,7 +148,7 @@ NODE *insertNode(NODE *raiz, JOGO *jogo)
   return raiz;
 }
 
-/*boolean ehMenor(NODE *raiz, JOGO *jogo) {
+boolean ehMenor(NODE *raiz, JOGO *jogo) {
     if(jogo_get_ano(jogo) == jogo_get_ano(raiz->jogo)){
         if (strcmp(jogo_get_nome_jogo(jogo), jogo_get_nome_jogo(raiz->jogo)) < 0)
         {
@@ -182,14 +172,6 @@ boolean ehMaior(NODE *raiz, JOGO *jogo) {
     }else{
         return jogo_get_ano(jogo) > jogo_get_ano(raiz->jogo);
     }
-}*/
-
-boolean comparar_maior(JOGO *jogo1, JOGO *jogo2){
-    if(jogo_get_ano(jogo1) == jogo_get_ano(jogo2)){
-        return strcmp(jogo_get_nome_jogo(jogo1), jogo_get_nome_jogo(jogo2)) > 0;
-    }else{
-        return jogo_get_ano(jogo1) > jogo_get_ano(jogo2);
-    }
 }
 
 boolean arvore_binaria_inserir(ARVORE_BINARIA *T, JOGO *jogo){
@@ -211,14 +193,45 @@ JOGO *abb_busca(ARVORE_BINARIA *T, int chave){
     return(abb_busca_no(T->raiz, chave));
 }
 
-static boolean abb_remover_aux(NODE **raiz, int chave){
+
+static NODE *balancear_remover(NODE *raiz){
+
+    if (raiz == NULL)
+        return raiz;
+
+    // Update the balance factor of each node and
+    // balance the tree
+    raiz->altura = 1 + max(altura(raiz->esquerda),altura(raiz->direita));
+
+    int balance = getBalance(raiz);
+
+    if (balance > 1 && getBalance(raiz->esquerda) >= 0)
+        return rightRotate(raiz);
+
+    if (balance > 1 && getBalance(raiz->esquerda) < 0) {
+        raiz->esquerda = leftRotate(raiz->esquerda);
+        return rightRotate(raiz);
+    }
+
+    if (balance < -1 && getBalance(raiz->direita) <= 0)
+        return leftRotate(raiz);
+
+    if (balance < -1 && getBalance(raiz->direita) > 0) {
+        raiz->direita = rightRotate(raiz->direita);
+        return leftRotate(raiz);
+    }
+
+    return raiz;
+
+}
+
+static boolean abb_remover_aux (NODE **raiz, int chave){
     NODE *noRemovido;
     
     if(*raiz == NULL)
     {
         return FALSE;
     }
-
     if(chave == jogo_get_ano((*raiz)->jogo))
     {
         if ((*raiz)->esquerda == NULL|| (*raiz)->direita == NULL)
@@ -238,31 +251,7 @@ static boolean abb_remover_aux(NODE **raiz, int chave){
             troca_max_esq((*raiz)->esquerda, (*raiz), (*raiz));
         }
 
-        (*raiz)->altura = 1 + max(altura((*raiz)->esquerda),altura((*raiz)->direita));
-
-        int balance = getBalance((*raiz));
-
-        if (balance > 1 && getBalance((*raiz)->esquerda) >= 0){ 
-            (*raiz) = rightRotate((*raiz));
-            return TRUE;
-        }
-
-        if (balance > 1 && getBalance((*raiz)->esquerda) < 0) {
-            (*raiz)->esquerda = leftRotate((*raiz)->esquerda);
-            (*raiz) = rightRotate((*raiz));
-            return TRUE;
-        }
-
-        if (balance < -1 && getBalance((*raiz)->direita) <= 0){
-            (*raiz) = leftRotate((*raiz));
-            return TRUE;
-        }
-
-        if (balance < -1 && getBalance((*raiz)->direita) > 0) {
-            (*raiz)->direita = rightRotate((*raiz)->direita);
-            (*raiz) = leftRotate((*raiz));
-            return TRUE;
-        }
+        (*raiz) = balancear_remover((*raiz));
 
         return TRUE;
     }
@@ -273,7 +262,6 @@ static boolean abb_remover_aux(NODE **raiz, int chave){
         else
             return abb_remover_aux (&(*raiz)->direita, chave);
     }
-
 }
 
 boolean arvore_binaria_remover(ARVORE_BINARIA *T, int chave){
@@ -335,31 +323,25 @@ static int getBalance(NODE *no) {
 }
 
 // Right rotate
-static NODE *rightRotate(NODE *y) {
-    NODE *x = y->esquerda;
-    NODE *T2 = x->direita;
+static NODE *rightRotate(NODE *a) {
+    NODE *b = a->esquerda;
+    a->esquerda = b->direita;
+    b->direita = a;
 
-    x->direita = y;
-    y->esquerda = T2;
-
-    y->altura = max(altura(y->esquerda), altura(y->direita)) + 1;
-    x->altura = max(altura(x->esquerda), altura(x->direita)) + 1;
-
-    return x;
+    a->altura = max(altura(a->esquerda),altura(a->direita)) + 1;
+    b->altura = max(altura(b->esquerda),a->altura) + 1;
+    return b;
 }
 
 // Left rotate
-static NODE *leftRotate(NODE *x) {
-    NODE *y = x->direita;
-    NODE *T2 = y->esquerda;
+static NODE *leftRotate(NODE *a) {
+    NODE *b = a->direita;
+    a->direita = b->esquerda;
+    b->esquerda = a;
 
-    y->esquerda = x;
-    x->direita = T2;
-
-    x->altura = max(altura(x->esquerda), altura(x->direita)) + 1;
-    y->altura = max(altura(y->esquerda), altura(y->direita)) + 1;
-
-    return y;
+    a->altura = max(altura(a->esquerda),altura(a->direita)) + 1;
+    b->altura = max(altura(b->direita),a->altura) + 1;
+    return b;
 }
 
 boolean set_jogos_file(ARVORE_BINARIA *T,const char *nfile)
@@ -376,6 +358,7 @@ boolean set_jogos_file(ARVORE_BINARIA *T,const char *nfile)
     fp = fopen(nfile, "r");
     if (fp == NULL)
         return FALSE;
+    fseek(fp, 3, SEEK_SET);
 
     while ((read = getline(&line, &len, fp)) != -1) {
 
@@ -389,7 +372,6 @@ boolean set_jogos_file(ARVORE_BINARIA *T,const char *nfile)
         {
             return FALSE;
         }
-        
         
     }
 
@@ -431,6 +413,21 @@ void arvore_binaria_imprimir(ARVORE_BINARIA *root)
 {
     // Pass initial space count as 0
     print2DUtil(root->raiz, 0);
+}
+
+static void avl_apagar_aux(NODE **raiz) {
+    if (*raiz != NULL) {
+        avl_apagar_aux(&((*raiz)->esquerda));
+        avl_apagar_aux(&((*raiz)->direita));
+        jogo_delete(&(*raiz)->jogo);
+        free(*raiz);
+    }
+}
+
+void avl_apagar(ARVORE_BINARIA **arvore) {
+    avl_apagar_aux(&(*arvore)->raiz);
+    free(*arvore);
+    *arvore = NULL;
 }
 
 

@@ -2,11 +2,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include "Jogo.h"
-#include "ArvoreBinaria.h"
+#include "Avl.h"
 
 int main (void){
 
-    ARVORE_BINARIA *arvore_binaria = arvore_binaria_criar();
+    AVL *arvore_binaria = avl_criar();
 
     set_jogos_file(arvore_binaria, "CSV-TodosJogos.csv");
 
@@ -20,7 +20,7 @@ int main (void){
         scanf("%s",aux_control);
         if (strcmp(aux_control,"F")==0) break;
 
-        arvore_binaria_remover(arvore_binaria, atoi(aux_control));
+        avl_remover(arvore_binaria, atoi(aux_control));
     }
 
      switch (t_impress)
@@ -38,5 +38,5 @@ int main (void){
             break;
         }
 
-    avl_apagar(&arvore_binaria);
+        avl_apagar(&arvore_binaria);
 }
